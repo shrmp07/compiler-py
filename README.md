@@ -1,59 +1,53 @@
-# compiler-py
-the tiny compiler but in python
+# PyLisp: A Lisp Interpreter in Python
 
+This project is an interpreter for a subset of the Lisp language, built from the ground up in Python. It began as a foundational four-stage compiler and was intentionally refactored into an AST-walking interpreter to explore the architectural trade-offs between transpilation and direct evaluation.
 
-### Phase 1: Lexical Analysis (Tokenizer)
-The first phase is called Lexical Analysis, which involves breaking the input code into smaller units called tokens. The `tokenizer.py` module handles this phase by defining a `tokenizer` function. It uses regular expressions to identify and extract different types of tokens, such as parentheses, letters, whitespace, and numbers.
-
-### Phase 2: Syntactic Analysis (Parser)
-The second phase is Syntactic Analysis, where the tokens produced in the previous phase are used to build an Abstract Syntax Tree (AST). The `parser_1.py` module implements this phase with the `parser` function. It recursively traverses the token stream and constructs an AST by recognizing different language constructs like numbers and function calls.
-
-### Phase 3: Transformation (Transformer)
-The third phase is Transformation, where the original AST is converted into a new AST that represents the desired target language. The `transformer.py` module handles this phase. It defines a `transformer` function that takes the original AST and generates a new AST suitable for Python code generation.
-
-### Phase 4: Code Generation
-The fourth and final phase is Code Generation, where the transformed AST is converted into actual code in the target language. The `generateCode.py` module implements this phase. It defines a `generateCode` function that recursively traverses the transformed AST and generates Python code based on the node types encountered.
-
-### Putting It All Together (index.py)
-The `index.py` file showcases how to use the different modules to compile input code. It imports the `compiler` function from the `compiler.py` module. This function orchestrates the entire compilation process by invoking the tokenizer, parser, transformer, and code generation steps. Finally, it prints the generated Python code to the console.
-
-
-# Lisp Interpreter in Python - new ver 01
-
-This project is a simple interpreter for a subset of the Lisp language, written in Python. It has evolved from a basic compiler to a full interpreter capable of evaluating expressions directly.
-
-The program can handle nested function calls, local variable bindings, and conditional logic, made for understanding the core mechanics of a programming language.
+The primary goal of this project was not just to build a working interpreter, but to analyze the design decisions required to support core language features like lexical scoping and first-class functions, which are challenging to implement in a simple transpiler model.
 
 ---
 
 ## Features
 
-* **Classic Interpreter Pipeline**: Implements a Tokenizer, Parser, and Evaluator.
-* **Variable Scope**: Supports local variable bindings using the `let` special form.
-* **Control Flow**: Includes conditional evaluation with the `if` special form.
-* **Data Types**: Handles integers, floats, booleans (`#t`, `#f`), and symbols.
-* **Standard Library**: Comes with a pre-configured global environment that includes basic arithmetic (`+`, `-`, `*`, `/`) and comparison (`>`, `<`, `=`) operators.
-* **Interactive REPL**: Features a Read-Eval-Print Loop for running Lisp code interactively.
+* **Lexical Scoping**: Implements a robust environment model with parent pointers to correctly handle nested local scopes, a cornerstone of functional programming languages.
+* **Core Lisp Semantics**: Supports special forms `(let)` for variable binding and `(if)` for conditional logic, which require non-standard evaluation rules.
+* **Rich Data Types**: Handles integers, floats, booleans (`#t`, `#f`), and symbols.
+* **Standard Library**: Provides a global environment pre-populated with essential arithmetic and comparison functions.
+* **Interactive REPL**: Includes a Read-Eval-Print Loop for live experimentation and testing of Lisp code.
 
 ---
 
-## Architecture
+## Architecture and Design Decisions
 
-The interpreter is built around a few key components:
+The interpreter's architecture evolved significantly from its initial compiler design. The final version consists of three main components that directly evaluate code.
 
-1.  **Tokenizer**: The `tokenize` function takes the raw Lisp code as a string and breaks it down into a list of tokens.
+### 1. Parsing: From Tokens to AST
 
-2.  **Parser**: The `parse` function converts the flat list of tokens into a hierarchical Abstract Syntax Tree (AST). The AST is represented as nested Python lists.
+The parser transforms a token stream into an Abstract Syntax Tree (AST). A key design choice was to represent the AST as nested Python lists rather than dedicated node classes.
 
-3.  **Environment**: The `Environment` class is crucial for managing state. It holds variable bindings and handles lexical scope by linking to a parent environment.
+* **Rationale**: This approach maintains a close structural correspondence to Lisp's own "code-as-data" philosophy (homoiconicity). While less rigid than class-based ASTs, it provides a flexible foundation and simplifies the initial parsing logic for this project's scope.
+* **Process**: A recursive descent parser reads the token stream. Special forms like `if` and `let` are parsed as standard lists, with their unique behavior handled later by the evaluator.
 
-4.  **Evaluator**: The `evaluate` function is the core of the interpreter. It recursively walks the AST, looks up variables in the environment, evaluates special forms like `if` and `let`, and executes function calls.
+### 2. The Environment Model
+
+The `Environment` class is the backbone of the interpreter, enabling lexical scoping.
+
+* **Challenge**: Supporting nested `let` blocks requires a mechanism to shadow variables correctly. A simple dictionary is insufficient.
+* **Solution**: Each `Environment` object contains a dictionary for local bindings and a reference to its parent (or "enclosing") environment. When looking up a variable, the interpreter checks the current scope and traverses up the chain of parent environments until it finds the variable or reaches the global scope. This elegantly models lexical scope.
+
+### 3. The AST-Walking Evaluator
+
+The `evaluate` function is the core of the interpreter. It traverses the AST and computes the final value.
+
+* **Architectural Shift**: The project was deliberately pivoted from a transpiler (which generates Python code) to a direct evaluator. The transpiler approach proved cumbersome for implementing special forms like `if`, which requires selective evaluation of its branches—a behavior that doesn't map cleanly to standard Python function calls.
+* **Implementation**: The evaluator recursively processes each node of the AST. It differentiates between:
+    * **Literals** (numbers, booleans), which evaluate to themselves.
+    * **Symbols**, which are looked up in the current environment.
+    * **Special Forms** (`if`, `let`), which have custom evaluation rules that manipulate the environment or control the flow of evaluation.
+    * **Function Calls**, where the arguments are evaluated first, and then the corresponding procedure is applied.
 
 ---
 
 ## Getting Started
-
-Follow these instructions to run the interpreter on your local machine.
 
 ### Prerequisites
 
@@ -61,29 +55,28 @@ Follow these instructions to run the interpreter on your local machine.
 
 ### Usage
 
-1.  **Clone the repository (if applicable) or save the code** to a file named `interpreter.py`.
+1.  **Save the code** to a file (e.g., `pylisp.py`).
 
-2.  **Run the script:**
-    Executing the file will automatically run a set of built-in examples and then start an interactive session.
+2.  **Run the script** from your terminal. It will execute a series of example tests and then launch the interactive REPL.
     ```bash
-    python interpreter.py
+    python pylisp.py
     ```
 
-3.  **Use the Interactive REPL:**
-    After the examples run, you'll see a `>` prompt. You can type Lisp expressions here and press Enter to see the result.
+3.  **Interact with the REPL:**
     ```lisp
-    > (+ 10 20)
-      = 30
-    > (let ((x 5)) (* x x))
-      = 25
-    > (if (< 5 10) 1 0)
-      = 1
-    > exit
+    > (let ((x 10)) (* x (+ x 5)))
+      = 150
+    > (if (> 5 10) "yes" "no")
+      = no
     ```
 
 ---
 
+## Future Work and Limitations
 
 
-feel free to comment and raise any issues,
-thank you
+
+* **Testing Framework**: Implement a formal testing suite using a framework like `pytest` to create unit tests for the parser and integration tests for the evaluator.
+* **Expanded Standard Library**: Add more built-in functions, such as list manipulation utilities (`car`, `cdr`, `cons`).
+* **User-Defined Functions**: Implement the `lambda` and `defun` special forms to allow users to create their own first-class functions and closures.
+* **Error Handling**: Improve error reporting with more descriptive messages and line number tracking.
