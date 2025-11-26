@@ -17,7 +17,7 @@ The repository contains two distinct implementations of the language, separating
 
 ---
 
-## 🧠 Engine 1: The Interpreter (Runtime Evaluation)
+##  Engine 1: The Interpreter (Runtime Evaluation)
 
 The interpreter is built on a custom **Environment Model** to support lexical scoping and closures. It prioritizes the dynamic nature of Lisp.
 
@@ -38,7 +38,7 @@ The interpreter is built on a custom **Environment Model** to support lexical sc
 
 ---
 
-## ⚙️ Engine 2: The Transpiler (Compilation Pipeline)
+##  Engine 2: The Transpiler (Compilation Pipeline)
 
 The transpiler decouples the source language from the execution model by treating Lisp as a frontend for Python. It transforms Lisp s-expressions into valid Python source code.
 
@@ -53,7 +53,7 @@ The transpiler decouples the source language from the execution model by treatin
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 * Python 3.x
