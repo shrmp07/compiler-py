@@ -1,3 +1,4 @@
+
 # PyLisp: A Lisp Toolchain in Python
 
 **A dual-engine implementation of a Lisp-like language, featuring both a Direct Interpreter and a Source-to-Source Transpiler.**
@@ -6,9 +7,17 @@ PyLisp was engineered to explore the architectural trade-offs between direct eva
 
 ---
 
-## 📂 Project Architecture
+##  Repository Navigation Note
 
-The repository contains two distinct implementations of the language, separating runtime logic from compilation logic.
+
+
+> Please navigate to the **`/LISP-PROJECT-ROOT`** directory to view the **current code**.
+
+---
+
+##  Project Architecture
+
+Inside `/LISP-PROJECT-ROOT`, the system is divided into two distinct implementations to separate runtime logic from compilation logic.
 
 | Directory | Description | AST Strategy |
 | :--- | :--- | :--- |
@@ -17,7 +26,7 @@ The repository contains two distinct implementations of the language, separating
 
 ---
 
-##  Engine 1: The Interpreter (Runtime Evaluation)
+## Engine 1: The Interpreter (Runtime Evaluation)
 
 The interpreter is built on a custom **Environment Model** to support lexical scoping and closures. It prioritizes the dynamic nature of Lisp.
 
@@ -44,8 +53,6 @@ The transpiler decouples the source language from the execution model by treatin
 
 ### Pipeline Architecture
 
-
-
 1.  **Lexical Analysis:** A Regex-based tokenizer that handles parentheses and symbols robustly.
 2.  **Syntactic Analysis:** A recursive descent parser generating a concrete, dictionary-based AST.
 3.  **Semantic Analysis (Transformer):** Uses the **Visitor Pattern** to map functional Lisp nodes (e.g., `CallExpression`) to imperative Python nodes.
@@ -59,7 +66,58 @@ The transpiler decouples the source language from the execution model by treatin
 * Python 3.x
 
 ### Installation
-Clone the repository:
+Clone the repository and navigate to the **modern project root**:
+
 ```bash
-git clone [https://github.com/yourusername/pylisp.git](https://github.com/yourusername/pylisp.git)
-cd pylisp
+git clone [https://github.com/shrmp07/compiler-py.git](https://github.com/shrmp07/compiler-py.git)
+cd compiler-py/LISP-PROJECT-ROOT
+````
+
+### Usage
+
+#### 1\. Running the Interpreter
+
+The interpreter parses Lisp code into lists and evaluates them against the global environment.
+
+```python
+# Ensure you are inside the LISP-PROJECT-ROOT directory
+from interpreter.core import evaluate, global_env, parse, tokenize
+
+# Define a factorial function recursively
+code = "(defun fact (n) (if (< n 2) 1 (* n (fact (- n 1)))))"
+
+# Tokenize -> Parse -> Evaluate
+ast = parse(tokenize(code))
+evaluate(ast, global_env)
+
+# Output: Function 'fact' defined.
+```
+
+#### 2\. Running the Transpiler
+
+The transpiler takes Lisp syntax and outputs valid Python string code.
+
+```python
+# Ensure you are inside the LISP-PROJECT-ROOT directory
+from compiler.compiler import compiler
+
+lisp_code = "(add 2 (sub 4 3))"
+
+# Compile to Python source
+python_code = compiler(lisp_code)
+
+print(python_code)
+# Output: add(2, sub(4, 3))
+```
+
+-----
+
+##  Testing
+
+The project includes a comprehensive test suite validating all stages of both pipelines.
+
+```bash
+# Run tests from the LISP-PROJECT-ROOT directory
+python -m unittest discover tests
+```
+
